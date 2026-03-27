@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"sistem-laba/models"
+	"strings"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -18,16 +19,31 @@ func InitDB() {
 		dsn = "host=localhost user=postgres password=postgres dbname=sistem_laba port=5432 sslmode=disable"
 	}
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	// For Supabase pooler (PgBouncer), disable prepared statements
+	// by using simple protocol to avoid "prepared statement already exists" errors
+	if strings.Contains(dsn, "pooler.supabase.com") || strings.Contains(dsn, "supabase") {
+		if !strings.Contains(dsn, "default_query_exec_mode") {
+			if strings.Contains(dsn, "?") {
+				dsn += "&default_query_exec_mode=simple_protocol"
+			} else {
+				dsn += "?default_query_exec_mode=simple_protocol"
+			}
+		}
+		log.Println("Supabase pooler detected, using simple_protocol mode")
+	}
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		PrepareStmt: false,
+	})
 	if err != nil {
 		log.Fatal("Gagal terhubung ke database:", err)
 	}
 	err = db.AutoMigrate(&models.Transaksi{})
 	if err != nil {
-		log.Fatalf("Gagal migrasi database: %v", err)
+		log.Printf("Peringatan migrasi database: %v", err)
 	}
 	DB = db
-	log.Println("Database terhubung & migrasi berhasil")
+	log.Println("Database terhubung & sinkronisasi selesai")
 }
 
 func CreateTransaksi(t models.Transaksi) (models.Transaksi, error) {
@@ -36,8 +52,11 @@ func CreateTransaksi(t models.Transaksi) (models.Transaksi, error) {
 }
 
 func GetAllTransaksi() []models.Transaksi {
-	var transaksi []models.Transaksi
-	DB.Order("created_at desc").Find(&transaksi)
+	transaksi := make([]models.Transaksi, 0)
+	result := DB.Order("created_at desc").Find(&transaksi)
+	if result.Error != nil {
+		log.Printf("Error fetching transaksi: %v", result.Error)
+	}
 	return transaksi
 }
 
