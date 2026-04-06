@@ -38,7 +38,7 @@ func InitDB() {
 	if err != nil {
 		log.Fatal("Gagal terhubung ke database:", err)
 	}
-	err = db.AutoMigrate(&models.Transaksi{}, &models.BahanBaku{}, &models.Produk{}, &models.ResepItem{})
+	err = db.AutoMigrate(&models.Transaksi{}, &models.BahanBaku{}, &models.Produk{}, &models.ResepItem{}, &models.BiayaTetap{})
 	if err != nil {
 		log.Printf("Peringatan migrasi database: %v", err)
 	}
@@ -117,4 +117,26 @@ func DeleteProduk(id uint) error {
 		return nil
 	})
 	return err
+}
+
+// Biaya Tetap CRUD
+func CreateBiayaTetap(b models.BiayaTetap) (models.BiayaTetap, error) {
+	result := DB.Create(&b)
+	return b, result.Error
+}
+
+func GetAllBiayaTetap() []models.BiayaTetap {
+	data := make([]models.BiayaTetap, 0)
+	DB.Find(&data)
+	return data
+}
+
+func UpdateBiayaTetap(b models.BiayaTetap) (models.BiayaTetap, error) {
+	result := DB.Save(&b)
+	return b, result.Error
+}
+
+func DeleteBiayaTetap(id uint) error {
+	result := DB.Delete(&models.BiayaTetap{}, id)
+	return result.Error
 }

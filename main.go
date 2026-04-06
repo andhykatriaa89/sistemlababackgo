@@ -30,6 +30,11 @@ func main() {
 	http.HandleFunc("/api/produk/save", middleware.CORS(handlers.CreateProduk))
 	http.HandleFunc("/api/produk/delete", middleware.CORS(handlers.DeleteProduk))
 
+	// Fixed Cost Routes
+	http.HandleFunc("/api/biaya-tetap", middleware.CORS(handlers.GetBiayaTetap))
+	http.HandleFunc("/api/biaya-tetap/save", middleware.CORS(handlers.SaveBiayaTetap))
+	http.HandleFunc("/api/biaya-tetap/delete", middleware.CORS(handlers.DeleteBiayaTetap))
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"

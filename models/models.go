@@ -40,3 +40,12 @@ type Produk struct {
 	Resep     []ResepItem `json:"resep" gorm:"foreignKey:ProdukID"`
 	CreatedAt time.Time   `json:"created_at"`
 }
+
+type BiayaTetap struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	Nama      string    `json:"nama"`
+	Kategori  string    `json:"kategori"` // Misal: Sewa, Gaji, Listrik
+	Jumlah    float64   `json:"jumlah"`
+	Siklus    string    `json:"siklus"` // Misal: Bulanan, Tahunan
+	CreatedAt time.Time `json:"created_at"`
+}
