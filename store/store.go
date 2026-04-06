@@ -38,7 +38,7 @@ func InitDB() {
 	if err != nil {
 		log.Fatal("Gagal terhubung ke database:", err)
 	}
-	err = db.AutoMigrate(&models.Transaksi{})
+	err = db.AutoMigrate(&models.Transaksi{}, &models.BahanBaku{}, &models.Produk{}, &models.ResepItem{})
 	if err != nil {
 		log.Printf("Peringatan migrasi database: %v", err)
 	}
@@ -63,4 +63,58 @@ func GetAllTransaksi() []models.Transaksi {
 func DeleteTransaksi(id uint) error {
 	result := DB.Delete(&models.Transaksi{}, id)
 	return result.Error
+}
+
+// Bahan Baku CRUD
+func CreateBahanBaku(b models.BahanBaku) (models.BahanBaku, error) {
+	result := DB.Create(&b)
+	return b, result.Error
+}
+
+func GetAllBahanBaku() []models.BahanBaku {
+	bahan := make([]models.BahanBaku, 0)
+	DB.Find(&bahan)
+	return bahan
+}
+
+func UpdateBahanBaku(b models.BahanBaku) (models.BahanBaku, error) {
+	result := DB.Save(&b)
+	return b, result.Error
+}
+
+func DeleteBahanBaku(id uint) error {
+	result := DB.Delete(&models.BahanBaku{}, id)
+	return result.Error
+}
+
+// Produk & Resep CRUD
+func CreateProduk(p models.Produk) (models.Produk, error) {
+	err := DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&p).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+	return p, err
+}
+
+func GetAllProduk() []models.Produk {
+	produk := make([]models.Produk, 0)
+	// Preload Resep and its associated BahanBaku
+	DB.Preload("Resep").Preload("Resep.BahanBaku").Find(&produk)
+	return produk
+}
+
+func DeleteProduk(id uint) error {
+	err := DB.Transaction(func(tx *gorm.DB) error {
+		// Delete ResepItems first
+		if err := tx.Where("produk_id = ?", id).Delete(&models.ResepItem{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Delete(&models.Produk{}, id).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+	return err
 }

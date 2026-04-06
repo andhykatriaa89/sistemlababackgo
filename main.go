@@ -22,6 +22,14 @@ func main() {
 	http.HandleFunc("/api/transaksi", middleware.CORS(handlers.GetTransaksi))
 	http.HandleFunc("/api/transaksi/delete", middleware.CORS(handlers.DeleteTransaksi))
 
+	// HPP Routes
+	http.HandleFunc("/api/bahan-baku", middleware.CORS(handlers.GetBahanBaku))
+	http.HandleFunc("/api/bahan-baku/save", middleware.CORS(handlers.SaveBahanBaku)) // Combine Create/Update
+	http.HandleFunc("/api/bahan-baku/delete", middleware.CORS(handlers.DeleteBahanBaku))
+	http.HandleFunc("/api/produk", middleware.CORS(handlers.GetProduk))
+	http.HandleFunc("/api/produk/save", middleware.CORS(handlers.CreateProduk))
+	http.HandleFunc("/api/produk/delete", middleware.CORS(handlers.DeleteProduk))
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
